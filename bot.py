@@ -8,7 +8,7 @@ import time
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = 'YOUR_BOT_TOKEN'
+TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
