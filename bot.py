@@ -8,7 +8,7 @@ import time
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
+TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
@@ -17,6 +17,8 @@ USER_REQUESTS = {}  # To track user requests and timestamps
 MAX_KEYS_PER_DAY = 4
 TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
+
+ADMIN_IDS = [123456789]  # Replace with actual admin user IDs
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -113,6 +115,12 @@ def can_request_key(user_id):
     return len(USER_REQUESTS[user_id]) < 1  # User can only click once in 24 hours
 
 async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+
+    if user_id not in ADMIN_IDS:
+        await update.message.reply_text("You are not authorized to use this command.")
+        return
+
     if not context.args:
         await update.message.reply_text("Usage: /add_promocode <promocode>")
         return
@@ -140,9 +148,15 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if remaining_keys > 0:
         await update.message.reply_text(f"Total remaining keys: {remaining_keys}")
     else:
-        await update.message.reply_text("No keys available at the moment. Please wait a while before trying again.")
+        await update.message.reply_text("No keys available. Please upload a new promocode file.")
 
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+
+    if user_id not in ADMIN_IDS:
+        await update.message.reply_text("You are not authorized to use this command.")
+        return
+
     if update.message.document:
         file = update.message.document
         file_id = file.file_id
@@ -155,6 +169,10 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(file_path, 'r') as f:
             content = f.read()
         
+        # Backup old promocode file and replace it with the new one
+        if os.path.exists(PROMOCODE_FILE):
+            os.rename(PROMOCODE_FILE, f"{PROMOCODE_FILE}.bak")
+
         with open(PROMOCODE_FILE, 'w') as f:
             f.write(content)
         
