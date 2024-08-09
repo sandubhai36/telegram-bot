@@ -137,7 +137,10 @@ async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     promocodes = load_promocodes()
     remaining_keys = len(promocodes)
-    await update.message.reply_text(f"Total remaining keys: {remaining_keys}")
+    if remaining_keys > 0:
+        await update.message.reply_text(f"Total remaining keys: {remaining_keys}")
+    else:
+        await update.message.reply_text("No keys available at the moment. Please wait a while before trying again.")
 
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.document:
@@ -156,7 +159,6 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f.write(content)
         
         await update.message.reply_text("Promo codes have been updated successfully.")
-        await update.message.reply_text("New promo codes have been added.")
 
 def main():
     application = Application.builder().token(TOKEN).build()
@@ -165,8 +167,8 @@ def main():
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(CommandHandler('add_promocode', add_promocode))
     application.add_handler(CommandHandler('subscribe', subscribe))
-    application.add_handler(CommandHandler('show_keys', show_keys))  # New command to show remaining keys
-    application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))  # Handler for file uploads
+    application.add_handler(CommandHandler('show_keys', show_keys))
+    application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
 
     application.run_polling()
 
