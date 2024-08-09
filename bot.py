@@ -164,7 +164,6 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         new_file = await context.bot.get_file(file_id)
         file_path = f"/tmp/{file.file_path.split('/')[-1]}"
         
-        logging.info(f"Downloading file to {file_path}")
         await new_file.download_to_drive(file_path)
         
         # Process the uploaded file
@@ -179,9 +178,9 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f.write(content)
         
         await update.message.reply_text("Promo codes have been updated successfully.")
-        logging.info("Promocode file updated successfully.")
-    else:
-        await update.message.reply_text("No document found. Please upload a valid promocode file.")
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    logging.error(f"Update {update} caused error {context.error}")
 
 def main():
     application = Application.builder().token(TOKEN).build()
@@ -192,6 +191,9 @@ def main():
     application.add_handler(CommandHandler('subscribe', subscribe))
     application.add_handler(CommandHandler('show_keys', show_keys))
     application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
+
+    # Register the error handler
+    application.add_error_handler(error_handler)
 
     application.run_polling()
 
