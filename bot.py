@@ -6,9 +6,9 @@ import random
 import time
 
 # Setup logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s', level=logging.INFO)
 
-TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
+TOKEN = 'YOUR_BOT_TOKEN'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
@@ -46,7 +46,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup = InlineKeyboardMarkup(keyboard)
             await bot.send_message(chat_id, "You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
         else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+            await bot.send_message(chat_id, "It seems like you haven't subscribed to the channel. Please subscribe to get the keys.")
     elif query.data == 'get_key':
         if await check_subscription(bot, user_id):
             if can_request_key(user_id):
@@ -60,7 +60,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
         else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+            await bot.send_message(chat_id, "It seems like you haven't subscribed to the channel. Please subscribe to get the keys.")
 
     await query.answer()  # Important to acknowledge callback queries
 
