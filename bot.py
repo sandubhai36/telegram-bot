@@ -47,7 +47,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup = InlineKeyboardMarkup(keyboard)
             await bot.send_message(chat_id, "You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
         else:
-            await bot.send_message(chat_id, "It seems like you haven't subscribed to the channel. Please subscribe to get the keys.")
+            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
     elif query.data == 'get_key':
         if await check_subscription(bot, user_id):
             if can_request_key(user_id):
@@ -61,7 +61,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
         else:
-            await bot.send_message(chat_id, "It seems like you haven't subscribed to the channel. Please subscribe to get the keys.")
+            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
 
     await query.answer()  # Important to acknowledge callback queries
 
@@ -164,6 +164,7 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         new_file = await context.bot.get_file(file_id)
         file_path = f"/tmp/{file.file_path.split('/')[-1]}"
         
+        logging.info(f"Downloading file to {file_path}")
         await new_file.download_to_drive(file_path)
         
         # Process the uploaded file
@@ -178,8 +179,9 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f.write(content)
         
         await update.message.reply_text("Promo codes have been updated successfully.")
+        logging.info("Promocode file updated successfully.")
     else:
-        await update.message.reply_text("Please upload a valid promocode.txt file.")
+        await update.message.reply_text("No document found. Please upload a valid promocode file.")
 
 def main():
     application = Application.builder().token(TOKEN).build()
