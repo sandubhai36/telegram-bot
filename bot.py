@@ -6,7 +6,7 @@ import random
 import time
 
 # Setup logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
@@ -18,7 +18,8 @@ MAX_KEYS_PER_DAY = 4
 TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
 
-ADMIN_IDS = [5841579466]  # Replace with actual admin user IDs
+# Replace with your admin user ID
+ADMIN_IDS = [5841579466]  # Example user ID
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -177,6 +178,8 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f.write(content)
         
         await update.message.reply_text("Promo codes have been updated successfully.")
+    else:
+        await update.message.reply_text("Please upload a valid promocode.txt file.")
 
 def main():
     application = Application.builder().token(TOKEN).build()
