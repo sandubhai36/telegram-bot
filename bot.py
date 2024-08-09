@@ -9,7 +9,7 @@ import time
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
-CHANNEL_ID = 'cryptocombat2'  # Remove '@'
+CHANNEL_ID = 'cryptocombat2'  # Removed '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
 USER_REQUESTS = {}  # To track user requests and timestamps
@@ -64,7 +64,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def check_subscription(bot, user_id):
     try:
-        member = await bot.get_chat_member(chat_id=f"@{CHANNEL_ID}", user_id=user_id)
+        member = await bot.get_chat_member(chat_id=CHANNEL_ID, user_id=user_id)
         logging.info(f"Checked subscription for user {user_id}: {member.status}")
         return member.status in ["member", "administrator", "creator"]
     except Exception as e:
