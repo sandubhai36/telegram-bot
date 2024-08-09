@@ -22,7 +22,7 @@ KEYS_PER_CLICK = 4  # Provide 4 keys at once
 ADMIN_IDS = [5841579466]  # Example user ID
 
 # Folder path for storing files
-FOLDER_PATH = '/storage/emulated/0/ALPHAKEYBOT/'
+FOLDER_PATH = '/tmp/ALPHAKEYBOT/'
 
 # Ensure the folder path exists
 os.makedirs(FOLDER_PATH, exist_ok=True)
