@@ -18,7 +18,7 @@ MAX_KEYS_PER_DAY = 4
 TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
 
-ADMIN_IDS = [123456789]  # Replace with actual admin user IDs
+ADMIN_IDS = [5841579466]  # Replace with actual admin user IDs
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
