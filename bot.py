@@ -21,6 +21,12 @@ KEYS_PER_CLICK = 4  # Provide 4 keys at once
 # Replace with your admin user ID
 ADMIN_IDS = [5841579466]  # Example user ID
 
+# Folder path for storing files
+FOLDER_PATH = '/storage/emulated/0/ALPHAKEYBOT/'
+
+# Ensure the folder path exists
+os.makedirs(FOLDER_PATH, exist_ok=True)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     bot = context.bot
@@ -162,7 +168,7 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         file = update.message.document
         file_id = file.file_id
         new_file = await context.bot.get_file(file_id)
-        file_path = f"/tmp/{file.file_path.split('/')[-1]}"
+        file_path = os.path.join(FOLDER_PATH, file.file_name)
         
         await new_file.download_to_drive(file_path)
         
@@ -179,9 +185,6 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text("Promo codes have been updated successfully.")
 
-async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.error(f"Update {update} caused error {context.error}")
-
 def main():
     application = Application.builder().token(TOKEN).build()
 
@@ -191,9 +194,6 @@ def main():
     application.add_handler(CommandHandler('subscribe', subscribe))
     application.add_handler(CommandHandler('show_keys', show_keys))
     application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
-
-    # Register the error handler
-    application.add_error_handler(error_handler)
 
     application.run_polling()
 
