@@ -91,25 +91,29 @@ def get_keys(user_id):
     if not promocodes:
         return []
 
-    available_keys = [code for code in promocodes if code not in USER_KEYS.get(user_id, [])]
-    if available_keys:
-        keys = []
-        for _ in range(KEYS_PER_CLICK):
-            if available_keys:
-                key = random.choice(available_keys)
-                keys.append(key)
-                available_keys.remove(key)
-                USER_KEYS.setdefault(user_id, []).append(key)  # Assign all keys at once
+    categories = ["Bike", "Train", "Cube", "Clone"]
+    keys = {}
+    remaining_promocodes = []
+
+    for code in promocodes:
+        for category in categories:
+            if code.startswith(f"{category}:"):
+                if category not in keys and code not in USER_KEYS.get(user_id, []):
+                    keys[category] = code.split(":", 1)[1]
+                    USER_KEYS.setdefault(user_id, []).append(code)
+                else:
+                    remaining_promocodes.append(code)
             else:
-                break
-        
-        # Update the promocode file after keys are issued
+                remaining_promocodes.append(code)
+
+    # If we found keys for each category, write the remaining promocodes back to the file
+    if keys:
         with open(PROMOCODE_FILE, 'w') as file:
-            for code in available_keys:
+            for code in remaining_promocodes:
                 file.write(f"{code}\n")
-        
-        return keys
-    return []
+
+    # Return the list of keys we found for the user
+    return list(keys.values())
 
 def log_request(user_id):
     current_time = time.time()
