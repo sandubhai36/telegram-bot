@@ -48,25 +48,28 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
 
     if query.data == 'get_key':
-        if user_id not in CLICK_TIMES:
-            CLICK_TIMES[user_id] = time.time()
+        current_time = time.time()
 
-        if user_id in CLICK_TIMES and time.time() - CLICK_TIMES[user_id] >= 10:
-            if await check_subscription(bot, user_id):
-                if can_request_key(user_id):
-                    keys = get_keys(user_id)
-                    if keys:
-                        key_list = "\n".join(keys)
-                        await bot.send_message(chat_id, f"Your keys:\n{key_list}")
-                        log_request(user_id)
-                    else:
-                        await bot.send_message(chat_id, "All keys have been used up. Please wait for 1 hour to update the keys.")
+        if user_id in CLICK_TIMES and current_time - CLICK_TIMES[user_id] < 10:
+            await bot.send_message(chat_id, "Please wait for 10 seconds after clicking the link before requesting a key.")
+            return
+
+        # Update or set click time
+        CLICK_TIMES[user_id] = current_time
+
+        if await check_subscription(bot, user_id):
+            if can_request_key(user_id):
+                keys = get_keys(user_id)
+                if keys:
+                    key_list = "\n".join(keys)
+                    await bot.send_message(chat_id, f"Your keys:\n{key_list}")
+                    log_request(user_id)
                 else:
-                    await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
+                    await bot.send_message(chat_id, "All keys have been used up. Please wait for 1 hour to update the keys.")
             else:
-                await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+                await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
         else:
-            await bot.send_message(chat_id, "You need to wait for 10 seconds after clicking the link before requesting a key.")
+            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
 
     await query.answer()  # Important to acknowledge callback queries
 
