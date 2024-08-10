@@ -2,7 +2,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 import logging
 import os
-import random
 import time
 
 # Setup logging
@@ -27,6 +26,9 @@ FOLDER_PATH = '/tmp/ALPHAKEYBOT/'
 # Ensure the folder path exists
 os.makedirs(FOLDER_PATH, exist_ok=True)
 
+# Store user click times
+CLICK_TIMES = {}
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     bot = context.bot
@@ -36,10 +38,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await bot.send_message(chat_id, "Please subscribe to the following channel to get the key.", reply_markup=reply_markup)
 
-    # After sending the subscribe message, send a button for the user to verify their subscription
-    verify_button = [[InlineKeyboardButton("Verify Subscription", callback_data='verify_subscription')]]
-    verify_reply_markup = InlineKeyboardMarkup(verify_button)
-    await bot.send_message(chat_id, "After subscribing, click the button below to verify your subscription.", reply_markup=verify_reply_markup)
+    # Send shortened link with instructions
+    await bot.send_message(chat_id, "Click this link: https://shrinkme.dev/Sandubhai and wait for 10 seconds before requesting your key.")
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -47,27 +47,26 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = query.message.chat_id
     bot = context.bot
 
-    if query.data == 'verify_subscription':
-        if await check_subscription(bot, user_id):
-            keyboard = [[InlineKeyboardButton("Get Key", callback_data='get_key')]]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            await bot.send_message(chat_id, "You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
-        else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
-    elif query.data == 'get_key':
-        if await check_subscription(bot, user_id):
-            if can_request_key(user_id):
-                keys = get_keys(user_id)
-                if keys:
-                    key_list = "\n".join(keys)
-                    await bot.send_message(chat_id, f"Your keys:\n{key_list}")
-                    log_request(user_id)
+    if query.data == 'get_key':
+        if user_id not in CLICK_TIMES:
+            CLICK_TIMES[user_id] = time.time()
+
+        if user_id in CLICK_TIMES and time.time() - CLICK_TIMES[user_id] >= 10:
+            if await check_subscription(bot, user_id):
+                if can_request_key(user_id):
+                    keys = get_keys(user_id)
+                    if keys:
+                        key_list = "\n".join(keys)
+                        await bot.send_message(chat_id, f"Your keys:\n{key_list}")
+                        log_request(user_id)
+                    else:
+                        await bot.send_message(chat_id, "All keys have been used up. Please wait for 1 hour to update the keys.")
                 else:
-                    await bot.send_message(chat_id, "All keys have been used up. Please wait for 1 hour to update the keys.")
+                    await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
             else:
-                await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
+                await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
         else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+            await bot.send_message(chat_id, "You need to wait for 10 seconds after clicking the link before requesting a key.")
 
     await query.answer()  # Important to acknowledge callback queries
 
