@@ -50,8 +50,15 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == 'get_key':
         current_time = time.time()
 
-        if user_id in CLICK_TIMES and current_time - CLICK_TIMES[user_id] < 10:
-            await bot.send_message(chat_id, "Please wait for 10 seconds after clicking the link before requesting a key.")
+        if user_id in CLICK_TIMES:
+            click_time = CLICK_TIMES[user_id]
+            elapsed_time = current_time - click_time
+
+            if elapsed_time < 10:
+                await bot.send_message(chat_id, "Please wait for 10 seconds after clicking the link before requesting a key.")
+                return
+        else:
+            await bot.send_message(chat_id, "You need to click the link and wait for 10 seconds before requesting a key.")
             return
 
         # Update or set click time
