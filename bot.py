@@ -2,12 +2,13 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 import logging
 import os
+import random
 import time
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
+TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
@@ -16,18 +17,6 @@ USER_REQUESTS = {}  # To track user requests and timestamps
 MAX_KEYS_PER_DAY = 4
 TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
-
-# Replace with your admin user ID
-ADMIN_IDS = [5841579466]  # Example user ID
-
-# Folder path for storing files
-FOLDER_PATH = '/tmp/ALPHAKEYBOT/'
-
-# Ensure the folder path exists
-os.makedirs(FOLDER_PATH, exist_ok=True)
-
-# Store user click times
-CLICK_TIMES = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -38,8 +27,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await bot.send_message(chat_id, "Please subscribe to the following channel to get the key.", reply_markup=reply_markup)
 
-    # Send shortened link with instructions
-    await bot.send_message(chat_id, "Click this link: https://shrinkme.dev/Sandubhai and wait for 10 seconds before requesting your key.")
+    # After sending the subscribe message, send a button for the user to verify their subscription
+    verify_button = [[InlineKeyboardButton("Verify Subscription", callback_data='verify_subscription')]]
+    verify_reply_markup = InlineKeyboardMarkup(verify_button)
+    await bot.send_message(chat_id, "After subscribing, click the button below to verify your subscription.", reply_markup=verify_reply_markup)
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -47,23 +38,14 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = query.message.chat_id
     bot = context.bot
 
-    if query.data == 'get_key':
-        current_time = time.time()
-
-        if user_id in CLICK_TIMES:
-            click_time = CLICK_TIMES[user_id]
-            elapsed_time = current_time - click_time
-
-            if elapsed_time < 10:
-                await bot.send_message(chat_id, "Please wait for 10 seconds after clicking the link before requesting a key.")
-                return
+    if query.data == 'verify_subscription':
+        if await check_subscription(bot, user_id):
+            keyboard = [[InlineKeyboardButton("Get Key", callback_data='get_key')]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await bot.send_message(chat_id, "You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
         else:
-            await bot.send_message(chat_id, "You need to click the link and wait for 10 seconds before requesting a key.")
-            return
-
-        # Update or set click time
-        CLICK_TIMES[user_id] = current_time
-
+            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+    elif query.data == 'get_key':
         if await check_subscription(bot, user_id):
             if can_request_key(user_id):
                 keys = get_keys(user_id)
@@ -100,29 +82,25 @@ def get_keys(user_id):
     if not promocodes:
         return []
 
-    categories = ["Bike", "Train", "Cube", "Clone"]
-    keys = {}
-    remaining_promocodes = []
-
-    for code in promocodes:
-        for category in categories:
-            if code.startswith(f"{category}:"):
-                if category not in keys and code not in USER_KEYS.get(user_id, []):
-                    keys[category] = code.split(":", 1)[1]
-                    USER_KEYS.setdefault(user_id, []).append(code)
-                else:
-                    remaining_promocodes.append(code)
+    available_keys = [code for code in promocodes if code not in USER_KEYS.get(user_id, [])]
+    if available_keys:
+        keys = []
+        for _ in range(KEYS_PER_CLICK):
+            if available_keys:
+                key = random.choice(available_keys)
+                keys.append(key)
+                available_keys.remove(key)
+                USER_KEYS.setdefault(user_id, []).append(key)  # Assign all keys at once
             else:
-                remaining_promocodes.append(code)
-
-    # If we found keys for each category, write the remaining promocodes back to the file
-    if keys:
+                break
+        
+        # Update the promocode file after keys are issued
         with open(PROMOCODE_FILE, 'w') as file:
-            for code in remaining_promocodes:
+            for code in available_keys:
                 file.write(f"{code}\n")
-
-    # Return the list of keys we found for the user
-    return list(keys.values())
+        
+        return keys
+    return []
 
 def log_request(user_id):
     current_time = time.time()
@@ -135,12 +113,6 @@ def can_request_key(user_id):
     return len(USER_REQUESTS[user_id]) < 1  # User can only click once in 24 hours
 
 async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-
-    if user_id not in ADMIN_IDS:
-        await update.message.reply_text("You are not authorized to use this command.")
-        return
-
     if not context.args:
         await update.message.reply_text("Usage: /add_promocode <promocode>")
         return
@@ -168,20 +140,14 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if remaining_keys > 0:
         await update.message.reply_text(f"Total remaining keys: {remaining_keys}")
     else:
-        await update.message.reply_text("No keys available. Please upload a new promocode file.")
+        await update.message.reply_text("No keys available at the moment. Please wait a while before trying again.")
 
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-
-    if user_id not in ADMIN_IDS:
-        await update.message.reply_text("You are not authorized to use this command.")
-        return
-
     if update.message.document:
         file = update.message.document
         file_id = file.file_id
         new_file = await context.bot.get_file(file_id)
-        file_path = os.path.join(FOLDER_PATH, file.file_name)
+        file_path = f"/tmp/{file.file_path.split('/')[-1]}"
         
         await new_file.download_to_drive(file_path)
         
@@ -189,10 +155,6 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(file_path, 'r') as f:
             content = f.read()
         
-        # Backup old promocode file and replace it with the new one
-        if os.path.exists(PROMOCODE_FILE):
-            os.rename(PROMOCODE_FILE, f"{PROMOCODE_FILE}.bak")
-
         with open(PROMOCODE_FILE, 'w') as f:
             f.write(content)
         
