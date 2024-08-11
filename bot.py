@@ -1,21 +1,16 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 import logging
 import os
 import random
 import time
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Configuration
-TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
-CHANNEL_ID = 'cryptocombat2'  # Remove '@'
+TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'  # Replace with your bot token
+CHANNEL_ID = 'https://t.me/cryptocombat2'  # Replace with your channel ID without '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
 USER_REQUESTS = {}  # To track user requests and timestamps
@@ -25,57 +20,6 @@ CO_ADMINS = set()  # Store co-admin IDs here
 MAX_KEYS_PER_DAY = 4
 TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
-
-# Proxies for IP rotation
-PROXY_LIST = [
-    "http://proxy1:port",
-    "http://proxy2:port",
-    # Add more proxies as needed
-]
-
-def create_driver(proxy=None):
-    chrome_options = Options()
-    if proxy:
-        chrome_options.add_argument(f'--proxy-server={proxy}')
-    
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    return driver
-
-def generate_key():
-    for attempt in range(len(PROXY_LIST)):
-        proxy = random.choice(PROXY_LIST)  # Choose a random proxy
-        logging.info(f"Trying proxy: {proxy}")
-        driver = create_driver(proxy)
-        website_url = 'https://shahidlala512.github.io/Hamster-Kombat-key-06363/'
-
-        try:
-            driver.get(website_url)
-            time.sleep(3)  # Wait for page to load
-
-            generate_button = driver.find_element(By.CSS_SELECTOR, ".generate-key-class")  # Update selector
-            generate_button.click()
-            time.sleep(3)  # Wait for key to generate
-
-            generated_key_element = driver.find_element(By.CSS_SELECTOR, ".key-output-class")  # Update selector
-            generated_key = generated_key_element.text.strip()
-
-            driver.quit()
-            return generated_key
-        except Exception as e:
-            logging.error(f"Error generating key with proxy {proxy}: {e}")
-            driver.quit()
-            # Try the next proxy if available
-            continue
-    logging.error("Failed to generate key with all proxies.")
-    return None
-
-def save_key(key):
-    if key:
-        with open(PROMOCODE_FILE, 'a') as file:
-            file.write(f"{key}\n")
-        logging.info(f"Key saved: {key}")
-    else:
-        logging.error("No key generated.")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -205,4 +149,20 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.document:
         file = update.message.document
-        file_id
+        # Code to handle file upload if needed
+        await update.message.reply_text("File uploaded successfully.")
+
+def main():
+    application = Application.builder().token(TOKEN).build()
+
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler('add_promocode', add_promocode))
+    application.add_handler(CommandHandler('subscribe', subscribe))
+    application.add_handler(CommandHandler('show_keys', show_keys))
+    application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
+
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
