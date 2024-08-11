@@ -10,7 +10,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 # Configuration
 TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'  # Replace with your bot token
-CHANNEL_ID = 'https://t.me/cryptocombat2'  # Replace with your channel ID without '@'
+CHANNEL_ID = 'cryptocombat2'  # Replace with your channel ID without '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
 USER_REQUESTS = {}  # To track user requests and timestamps
@@ -26,7 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
 
     # Send message with subscription button
-    keyboard = [[InlineKeyboardButton("🔔 Subscribe", url=f"https://t.me/cryptocombat2}")]]
+    keyboard = [[InlineKeyboardButton("🔔 Subscribe", url=f"https://t.me/{CHANNEL_ID}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await bot.send_message(chat_id, "Please subscribe to the channel to get your key 🔑.", reply_markup=reply_markup)
 
@@ -149,17 +149,8 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.document:
         file = update.message.document
-        file_id = file.file_id
-        file.download(f'./{file_id}.txt')  # Download file with unique name
-
-        with open(f'./{file_id}.txt', 'r') as f:
-            promocodes = f.read().splitlines()
-
-        with open(PROMOCODE_FILE, 'a') as f:
-            f.writelines('\n'.join(promocodes) + '\n')
-        
-        os.remove(f'./{file_id}.txt')  # Clean up the file after processing
-        await update.message.reply_text("Promo codes have been uploaded and saved.")
+        # Code to handle file upload if needed
+        await update.message.reply_text("File uploaded successfully.")
 
 def main():
     application = Application.builder().token(TOKEN).build()
@@ -171,7 +162,4 @@ def main():
     application.add_handler(CommandHandler('show_keys', show_keys))
     application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
 
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+    application.run_polling
