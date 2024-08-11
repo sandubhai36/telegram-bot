@@ -219,4 +219,6 @@ def main():
     application.add_handler(CommandHandler('show_keys', show_keys))
     application.add_handler(CommandHandler('upload_promocodes', upload_promocodes))
     application.add_handler(CommandHandler('feedback', feedback))
-    application.add_handler(Command
+    application.add_handler(CommandHandler('stats', stats))
+
+    application.run_polling
