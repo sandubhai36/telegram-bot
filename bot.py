@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 import logging
 import os
 import random
@@ -26,7 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
 
     # Send message with subscription button
-    keyboard = [[InlineKeyboardButton("🔔 Subscribe", url=f"https://t.me/{CHANNEL_ID}")]]
+    keyboard = [[InlineKeyboardButton("🔔 Subscribe", url=f"https://t.me/cryptocombat2}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await bot.send_message(chat_id, "Please subscribe to the channel to get your key 🔑.", reply_markup=reply_markup)
 
@@ -149,8 +149,17 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.document:
         file = update.message.document
-        # Code to handle file upload if needed
-        await update.message.reply_text("File uploaded successfully.")
+        file_id = file.file_id
+        file.download(f'./{file_id}.txt')  # Download file with unique name
+
+        with open(f'./{file_id}.txt', 'r') as f:
+            promocodes = f.read().splitlines()
+
+        with open(PROMOCODE_FILE, 'a') as f:
+            f.writelines('\n'.join(promocodes) + '\n')
+        
+        os.remove(f'./{file_id}.txt')  # Clean up the file after processing
+        await update.message.reply_text("Promo codes have been uploaded and saved.")
 
 def main():
     application = Application.builder().token(TOKEN).build()
