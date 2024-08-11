@@ -205,22 +205,4 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.document:
         file = update.message.document
-        file_id = file.file_id
-        new_file = await context.bot.get_file(file_id)
-        file_path = f"/tmp/{file.file_path.split('/')[-1]}"
-        
-        await new_file.download_to_drive(file_path)
-        
-        # Process the uploaded file
-        with open(file_path, 'r') as f:
-            content = f.read()
-        
-        with open(PROMOCODE_FILE, 'w') as f:
-            f.write(content)
-        
-        await update.message.reply_text("Promo codes have been updated successfully ✅.")
-
-async def admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    if user_id != ADMIN_ID:
-        await update.message.reply_text
+        file_id
