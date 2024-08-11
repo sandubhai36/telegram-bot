@@ -11,9 +11,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
+FEEDBACK_FILE = 'feedback.txt'
 USER_KEYS = {}
 USER_REQUESTS = {}
-FEEDBACK_FILE = 'feedback.txt'
 ADMIN_IDS = [5841579466]
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
 
@@ -109,7 +109,6 @@ def log_request(user_id):
 def can_request_key(user_id):
     if user_id not in USER_REQUESTS:
         return True
-    log_request(user_id)  # Clean old requests
     return len(USER_REQUESTS[user_id]) < 1  # User can only click once in 24 hours
 
 async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -212,13 +211,12 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     application = Application.builder().token(TOKEN).build()
 
+    # Register handlers
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(CommandHandler('add_promocode', add_promocode))
     application.add_handler(CommandHandler('subscribe', subscribe))
     application.add_handler(CommandHandler('show_keys', show_keys))
-    application.add_handler(CommandHandler('upload_promocodes', upload_promocodes))
+    application.add_handler(CommandHandler('upload_promocodes', upload_promocodes, filters.Document.ALL))
     application.add_handler(CommandHandler('feedback', feedback))
-    application.add_handler(CommandHandler('stats', stats))
-
-    application.run_polling
+    application.add
