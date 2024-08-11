@@ -8,7 +8,7 @@ import time
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = '7315530068:AAG7YarF3GPY65zaDnnVGJHDX3Z6DpSr_FE'
+TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
@@ -163,6 +163,9 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text("Promo codes have been updated successfully.")
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.error(msg="Exception while handling an update:", exc_info=context.error)
+
 def main():
     application = Application.builder().token(TOKEN).build()
 
@@ -172,6 +175,9 @@ def main():
     application.add_handler(CommandHandler('subscribe', subscribe))
     application.add_handler(CommandHandler('show_keys', show_keys))
     application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
+
+    # Add error handler
+    application.add_error_handler(error_handler)
 
     application.run_polling()
 
