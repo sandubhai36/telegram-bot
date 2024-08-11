@@ -12,28 +12,24 @@ TOKEN = '7076788390:AAG1vOxSaTMDSI3kEPYtqzEpIXFFrlvvbAo'
 CHANNEL_ID = 'cryptocombat2'  # Remove '@'
 PROMOCODE_FILE = 'promocode.txt'
 USER_KEYS = {}
-USER_REQUESTS = {}  # To track user requests and timestamps
-
-MAX_KEYS_PER_DAY = 4
-TIME_LIMIT = 24 * 60 * 60  # 24 hours in seconds
+USER_REQUESTS = {}
+FEEDBACK_FILE = 'feedback.txt'
+ADMIN_IDS = [5841579466]
 KEYS_PER_CLICK = 4  # Provide 4 keys at once
-
-# Replace with your admin user ID
-ADMIN_IDS = [5841579466]  # Example user ID
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     bot = context.bot
 
     # Send message with subscription button
-    keyboard = [[InlineKeyboardButton("Subscribe", url=f"https://t.me/{CHANNEL_ID}")]]
+    keyboard = [[InlineKeyboardButton("📢 Subscribe to Channel", url=f"https://t.me/{CHANNEL_ID}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await bot.send_message(chat_id, "Please subscribe to the following channel to get the key.", reply_markup=reply_markup)
+    await bot.send_message(chat_id, "To receive your keys, please subscribe to our channel using the button below.", reply_markup=reply_markup)
 
     # After sending the subscribe message, send a button for the user to verify their subscription
-    verify_button = [[InlineKeyboardButton("Verify Subscription", callback_data='verify_subscription')]]
+    verify_button = [[InlineKeyboardButton("✅ Verify Subscription", callback_data='verify_subscription')]]
     verify_reply_markup = InlineKeyboardMarkup(verify_button)
-    await bot.send_message(chat_id, "After subscribing, click the button below to verify your subscription.", reply_markup=verify_reply_markup)
+    await bot.send_message(chat_id, "Once subscribed, click the button below to verify your subscription.", reply_markup=verify_reply_markup)
 
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -43,25 +39,26 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == 'verify_subscription':
         if await check_subscription(bot, user_id):
-            keyboard = [[InlineKeyboardButton("Get Key", callback_data='get_key')]]
+            keyboard = [[InlineKeyboardButton("🔑 Get Your Keys", callback_data='get_key')]]
             reply_markup = InlineKeyboardMarkup(keyboard)
-            await bot.send_message(chat_id, "You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
+            await bot.send_message(chat_id, "You are now subscribed! Click below to get your keys.", reply_markup=reply_markup)
         else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+            await bot.send_message(chat_id, "You need to subscribe to the channel to access the keys.")
+
     elif query.data == 'get_key':
         if await check_subscription(bot, user_id):
             if can_request_key(user_id):
                 keys = get_keys(user_id)
                 if keys:
                     key_list = "\n".join(keys)
-                    await bot.send_message(chat_id, f"Your keys:\n{key_list}")
+                    await bot.send_message(chat_id, f"Here are your keys:\n{key_list}")
                     log_request(user_id)
                 else:
-                    await bot.send_message(chat_id, "All keys have been used up. Please wait for 1 hour to update the keys.")
+                    await bot.send_message(chat_id, "🔒 All keys have been used up. Please wait for a while to get new keys.")
             else:
-                await bot.send_message(chat_id, "You have already received your keys. Please try again after 24 hours.")
+                await bot.send_message(chat_id, "🕒 You have already received your keys. Please try again after 24 hours.")
         else:
-            await bot.send_message(chat_id, "You need to subscribe to the channel to get the keys.")
+            await bot.send_message(chat_id, "You need to subscribe to the channel to access the keys.")
 
     await query.answer()  # Important to acknowledge callback queries
 
@@ -119,17 +116,17 @@ async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
     if user_id not in ADMIN_IDS:
-        await update.message.reply_text("You are not authorized to use this command.")
+        await update.message.reply_text("🚫 You are not authorized to use this command.")
         return
 
     if not context.args:
-        await update.message.reply_text("Usage: /add_promocode <promocode>")
+        await update.message.reply_text("ℹ️ Usage: /add_promocode <promocode>")
         return
 
     promocode = ' '.join(context.args)
     with open(PROMOCODE_FILE, 'a') as file:
         file.write(f"{promocode}\n")
-    await update.message.reply_text(f"Promo code '{promocode}' added.")
+    await update.message.reply_text(f"✅ Promo code '{promocode}' has been added.")
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
@@ -137,25 +134,25 @@ async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     bot = context.bot
 
     if await check_subscription(bot, user_id):
-        keyboard = [[InlineKeyboardButton("Get Key", callback_data='get_key')]]
+        keyboard = [[InlineKeyboardButton("🔑 Get Your Keys", callback_data='get_key')]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text("You are subscribed! Click the button below to get your keys.", reply_markup=reply_markup)
+        await update.message.reply_text("✅ You are subscribed! Click below to get your keys.", reply_markup=reply_markup)
     else:
-        await update.message.reply_text("Please subscribe to the channel to get the keys.")
+        await update.message.reply_text("❗ Please subscribe to the channel to get your keys.")
 
 async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     promocodes = load_promocodes()
     remaining_keys = len(promocodes)
     if remaining_keys > 0:
-        await update.message.reply_text(f"Total remaining keys: {remaining_keys}")
+        await update.message.reply_text(f"🗝️ Total remaining keys: {remaining_keys}")
     else:
-        await update.message.reply_text("No keys available. Please upload a new promocode file.")
+        await update.message.reply_text("🔒 No keys available. Please upload a new promocode file.")
 
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
     if user_id not in ADMIN_IDS:
-        await update.message.reply_text("You are not authorized to use this command.")
+        await update.message.reply_text("🚫 You are not authorized to use this command.")
         return
 
     if update.message.document:
@@ -177,7 +174,40 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(PROMOCODE_FILE, 'w') as f:
             f.write(content)
         
-        await update.message.reply_text("Promo codes have been updated successfully.")
+        await update.message.reply_text("✅ Promo codes have been updated successfully.")
+
+async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    feedback_text = ' '.join(context.args)
+    
+    if not feedback_text:
+        await update.message.reply_text("ℹ️ Usage: /feedback <your feedback>")
+        return
+
+    with open(FEEDBACK_FILE, 'a') as file:
+        file.write(f"User {user_id}: {feedback_text}\n")
+    
+    await update.message.reply_text("✅ Thank you for your feedback!")
+
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    
+    if user_id not in ADMIN_IDS:
+        await update.message.reply_text("🚫 You are not authorized to use this command.")
+        return
+
+    total_keys = len(load_promocodes())
+    total_users = len(USER_KEYS)
+    total_requests = sum(len(requests) for requests in USER_REQUESTS.values())
+    
+    stats_message = (
+        f"📊 **Bot Statistics**\n\n"
+        f"Total Keys: {total_keys}\n"
+        f"Total Users: {total_users}\n"
+        f"Total Key Requests: {total_requests}\n"
+    )
+    
+    await update.message.reply_text(stats_message, parse_mode='Markdown')
 
 def main():
     application = Application.builder().token(TOKEN).build()
@@ -187,9 +217,6 @@ def main():
     application.add_handler(CommandHandler('add_promocode', add_promocode))
     application.add_handler(CommandHandler('subscribe', subscribe))
     application.add_handler(CommandHandler('show_keys', show_keys))
-    application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
-
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+    application.add_handler(CommandHandler('upload_promocodes', upload_promocodes))
+    application.add_handler(CommandHandler('feedback', feedback))
+    application.add_handler(Command
