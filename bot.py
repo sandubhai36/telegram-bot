@@ -222,4 +222,5 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    if user_id != ADMIN_ID
+    if user_id != ADMIN_ID:
+        await update.message.reply_text
