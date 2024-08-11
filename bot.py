@@ -220,4 +220,6 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text("Promo codes have been updated successfully ✅.")
 
-async def admin
+async def admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    if user_id != ADMIN_ID
