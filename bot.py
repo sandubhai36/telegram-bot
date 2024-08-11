@@ -22,6 +22,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     bot = context.bot
 
+    # Custom Message
+    await bot.send_message(chat_id, "✨ **THIS BOT IS MADE BY QURESHI BOY AND SHAHIDLALA** ✨")
+
     # Send message with subscription button
     keyboard = [[InlineKeyboardButton("Subscribe", url=f"https://t.me/{CHANNEL_ID}")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
