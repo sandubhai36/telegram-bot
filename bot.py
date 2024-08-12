@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import time
+import requests
 
 # Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -20,6 +21,9 @@ KEYS_PER_CLICK = 4  # Provide 4 keys at once
 
 # Replace with your admin user ID
 ADMIN_IDS = [5841579466]  # Example user ID
+
+# URL to the key generator GitHub repo website
+KEY_GENERATOR_URL = "https://shahidlala512.github.io/Hamster-Kombat-key-06363/"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -115,6 +119,21 @@ def can_request_key(user_id):
     log_request(user_id)  # Clean old requests
     return len(USER_REQUESTS[user_id]) < 1  # User can only click once in 24 hours
 
+async def generate_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        response = requests.get(KEY_GENERATOR_URL)
+        if response.status_code == 200:
+            keys = response.text.splitlines()  # Assuming the website returns the keys in plain text, one per line
+            with open(PROMOCODE_FILE, 'a') as file:
+                for key in keys:
+                    file.write(f"{key}\n")
+            await update.message.reply_text("Keys have been generated and saved.")
+        else:
+            await update.message.reply_text(f"Failed to generate keys. Status code: {response.status_code}")
+    except Exception as e:
+        logging.error(f"Error generating keys: {e}")
+        await update.message.reply_text(f"An error occurred: {e}")
+
 async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
 
@@ -179,6 +198,11 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await update.message.reply_text("Promo codes have been updated successfully.")
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the user."""
+    logging.error(msg="Exception while handling an update:", exc_info=context.error)
+    await update.message.reply_text("An error occurred, please try again later.")
+
 def main():
     application = Application.builder().token(TOKEN).build()
 
@@ -186,10 +210,4 @@ def main():
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(CommandHandler('add_promocode', add_promocode))
     application.add_handler(CommandHandler('subscribe', subscribe))
-    application.add_handler(CommandHandler('show_keys', show_keys))
-    application.add_handler(MessageHandler(filters.Document.ALL, upload_promocodes))
-
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
+    application.add_handler(CommandHandler('show_keys', show
