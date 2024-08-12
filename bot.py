@@ -128,6 +128,13 @@ async def generate_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 for key in keys:
                     file.write(f"{key}\n")
             await update.message.reply_text("Keys have been generated and saved.")
+            
+            # Verify if the keys were stored successfully
+            stored_keys = load_promocodes()
+            if len(stored_keys) > 0:
+                await update.message.reply_text(f"Verification successful: {len(stored_keys)} keys stored.")
+            else:
+                await update.message.reply_text("Verification failed: No keys stored.")
         else:
             await update.message.reply_text(f"Failed to generate keys. Status code: {response.status_code}")
     except Exception as e:
@@ -208,6 +215,4 @@ def main():
 
     application.add_handler(CommandHandler('start', start))
     application.add_handler(CallbackQueryHandler(button))
-    application.add_handler(CommandHandler('add_promocode', add_promocode))
-    application.add_handler(CommandHandler('subscribe', subscribe))
-    application.add_handler(CommandHandler('show_keys', show
+    application.add
