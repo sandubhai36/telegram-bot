@@ -212,14 +212,16 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = update.message.from_user.id
-        
+
         if user_id not in ADMIN_IDS:
             await update.message.reply_text("🚫 You are not authorized to use this command.")
             return
 
-        total_keys = len(load_promocodes())
         total_users = len(USER_KEYS)
-        total_requests = sum(len(requests) for requests in USER_REQUESTS.values())
-        
-        stats_message = (
-            f"
+        total_requests = len(USER_REQUESTS)
+        await update.message.reply_text(f"📊 Stats:\nTotal Users: {total_users}\nTotal Requests: {total_requests}")
+    except Exception as e:
+        logging.error(f"Error in stats command: {e}")
+
+def main():
+    application = Application.builder().token(TOKEN).build()
