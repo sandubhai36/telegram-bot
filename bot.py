@@ -222,6 +222,4 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         total_requests = sum(len(requests) for requests in USER_REQUESTS.values())
         
         stats_message = (
-            f"📊 **Bot Statistics**\n\n"
-            f"Total Keys: {total_keys}\n"
-            f"Total
+            f"
