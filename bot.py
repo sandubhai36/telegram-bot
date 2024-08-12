@@ -216,4 +216,6 @@ def main():
     application.add_handler(CallbackQueryHandler(button))
     application.add_handler(CommandHandler('add_promocode', add_promocode))
     application.add_handler(CommandHandler('subscribe', subscribe))
-    application.add_handler(Command
+    application.add_handler(CommandHandler('show_keys', show_keys))
+    application.add_handler(CommandHandler('upload_promocodes', upload_promocodes, filters.Document.ALL))
+    application.add_handler(CommandHandler('feedback', feedback
