@@ -19,7 +19,7 @@ KEYS_PER_CLICK = 4  # Provide 4 keys at once
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        chat_id = update.message.chat_id
+        chat_id = update.effective_chat.id
         bot = context.bot
 
         # Send message with subscription button
@@ -38,7 +38,7 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         query = update.callback_query
         user_id = query.from_user.id
-        chat_id = query.message.chat_id
+        chat_id = query.message.chat.id
         bot = context.bot
 
         if query.data == 'verify_subscription':
@@ -119,7 +119,7 @@ def can_request_key(user_id):
 
 async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_id = update.message.from_user.id
+        user_id = update.effective_user.id
 
         if user_id not in ADMIN_IDS:
             await update.message.reply_text("🚫 You are not authorized to use this command.")
@@ -138,8 +138,8 @@ async def add_promocode(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_id = update.message.from_user.id
-        chat_id = update.message.chat_id
+        user_id = update.effective_user.id
+        chat_id = update.effective_chat.id
         bot = context.bot
 
         if await check_subscription(bot, user_id):
@@ -164,7 +164,7 @@ async def show_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_id = update.message.from_user.id
+        user_id = update.effective_user.id
 
         if user_id not in ADMIN_IDS:
             await update.message.reply_text("🚫 You are not authorized to use this command.")
@@ -195,7 +195,7 @@ async def upload_promocodes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        user_id = update.message.from_user.id
+        user_id = update.effective_user.id
         feedback_text = ' '.join(context.args)
         
         if not feedback_text:
@@ -209,19 +209,10 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"Error processing feedback: {e}")
 
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        user_id = update.message.from_user.id
-
-        if user_id not in ADMIN_IDS:
-            await update.message.reply_text("🚫 You are not authorized to use this command.")
-            return
-
-        total_users = len(USER_KEYS)
-        total_requests = len(USER_REQUESTS)
-        await update.message.reply_text(f"📊 Stats:\nTotal Users: {total_users}\nTotal Requests: {total_requests}")
-    except Exception as e:
-        logging.error(f"Error in stats command: {e}")
-
 def main():
-    application = Application.builder().token(TOKEN).build()
+    try:
+        application = Application.builder().token(TOKEN).build()
+
+        application.add_handler(CommandHandler('start', start))
+        application.add_handler(CommandHandler('add_promocode', add_promocode))
+        application.add
